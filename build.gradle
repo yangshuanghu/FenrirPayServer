@@ -1,0 +1,57 @@
+group 'fenrir'
+version '1.0-SNAPSHOT'
+
+buildscript {
+    repositories { jcenter()
+        maven {
+            url 'https://github.com/serkan-ozal/maven-repository/raw/master/'
+        }
+        maven {
+            url "https://oss.sonatype.org/content/repositories/snapshots"
+        }
+
+    }
+
+    dependencies {
+        classpath 'com.bmuschko:gradle-nexus-plugin:2.2'
+        classpath 'com.github.jengelman.gradle.plugins:shadow:1.2.3'
+        classpath 'com.github.lkishalmi.gradle:gradle-bom-plugin:0.3'
+
+    }
+}
+
+apply plugin: 'java'
+apply plugin: 'com.github.johnrengelman.shadow'
+apply plugin: 'com.bmuschko.nexus'
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+shadowJar {
+    mergeServiceFiles()
+}
+
+jar {
+    manifest {
+        attributes 'Main-Class': 'com.fenrir.server.SimpleApp'
+    }
+}
+
+repositories {
+    mavenCentral()
+    maven { url "http://repo.maven.apache.org/maven2" }
+    jcenter()
+}
+
+dependencies {
+    testCompile group: 'junit', name: 'junit', version: '4.11'
+//    compile group: 'com.aol.microservices', name:'micro-grizzly-with-jersey', version:'0.82'
+
+    compile 'com.aol.microservices:micro-tomcat-with-jersey:0.82'
+    compile 'com.aol.microservices:micro-swagger:0.62'
+//    compile 'com.aol.microservices:micro-mysql:0.82'
+
+//    compile 'com.aol.microservices:micro-grizzly:0.82'
+    compile 'mysql:mysql-connector-java:5.1.38'
+    compile 'com.ibeetl:beetlsql:2.2.1'
+    compile 'org.projectlombok:lombok:1.16.8'
+}
