@@ -4,10 +4,7 @@ import com.aol.micro.server.MicroserverApp;
 import com.aol.micro.server.auto.discovery.Rest;
 import com.fenrir.server.data.SQLManagerBuilder;
 import com.fenrir.server.model.api.*;
-import com.fenrir.server.model.db.GoodsTable;
-import com.fenrir.server.model.db.HistoryTable;
-import com.fenrir.server.model.db.Table;
-import com.fenrir.server.model.db.UserTable;
+import com.fenrir.server.model.db.*;
 import com.fenrir.server.util.StringUtil;
 import com.wordnik.swagger.annotations.Api;
 import com.wordnik.swagger.annotations.ApiOperation;
@@ -31,25 +28,17 @@ public class StaffResource {
 
     // =========== 用户管理 =============
     @POST
-    @Path("api_register")
+    @Path("api_login")
     @Produces(MediaType.APPLICATION_JSON)
-    public RegisterStaffRequest registerStaff(
+    public UserInfo userLogin(
             @FormParam("name")     String name,
-            @FormParam("password") String password,
-            @FormParam("staffId")  int staffId
+            @FormParam("password") String password
     ) throws Exception {
-        if(UserTable.hasStaff(staffId))
-            throw new Exception("StaffId " + staffId + " 已存在。");
-        if(StringUtil.isEmpty(name) || StringUtil.isEmpty(password))
-            throw new Exception("Name 或者 Password 不能为空。");
+        UserTable userTable = UserTable.selectByNamePwd(name, password);
+        if(userTable == null)
+            throw new Exception("账户验证错误");
 
-        UserTable user = UserTable.of(name, password, staffId);
-        user.insert();
-
-        RegisterStaffRequest request = new RegisterStaffRequest();
-        request.setToken(user.getToken());
-
-        return request;
+        return UserInfo.of(userTable);
     }
 
     @POST
@@ -71,13 +60,12 @@ public class StaffResource {
     public StatusModel modifyUserInfo(
             @FormParam("name")     String name,
             @FormParam("password") String password,
-            @FormParam("username") String username,
-            @FormParam("staffId")  int staffId
+            @FormParam("newpassword") String newPassword
     ) throws Exception {
-        UserTable userTable = UserTable.selectByNamePwdStaffId(name, password, staffId);
+        UserTable userTable = UserTable.selectByNamePwd(name, password);
         if(userTable == null)
             throw new Exception("账户验证错误");
-        userTable.setUsername(username);
+        userTable.password(newPassword);
 
         return new StatusModel();
     }
@@ -127,12 +115,19 @@ public class StaffResource {
     @Produces(MediaType.APPLICATION_JSON)
     public HistoryModel getPayHistory(
             @FormParam("token") String token,
-            @FormParam("start") Date start,
-            @FormParam("end") Date end
-    ) {
+            @FormParam("start") String start, // yyyy-mm-dd hh:mm
+            @FormParam("end") String end      // yyyy-mm-dd hh:mm
+    ) throws Exception {
+        UserTable userTable = UserTable.selectByToken(token);
+        if(userTable == null)
+            throw new Exception("用户未找到");
+
+        Date startDate = StringUtil.getDateFromString(start);
+        Date endDate = StringUtil.getDateFromString(end);
+
         List<HistoryModel.HistoryEntry> entryList = new ArrayList<>();
 
-        List<HistoryTable> list = HistoryTable.selectHistoryByDate(token, start, end);
+        List<HistoryTable> list = HistoryTable.selectHistoryByDate(userTable.getStaffId(), startDate, endDate);
         for(HistoryTable history : list) {
             GoodsTable goodsTable = GoodsTable.selectByBarCode(history.getGoodsBarCode());
             if(goodsTable == null) {
@@ -155,6 +150,35 @@ public class StaffResource {
         historyModel.setHistory(entryList);
 
         return historyModel;
+    }
+
+    // =========== 充值历史查询 =============
+
+    @POST
+    @Path("api_getChargeHistory")
+    @Produces(MediaType.APPLICATION_JSON)
+    public ChargeModel getChargeHistory(
+            @FormParam("token") String token,
+            @FormParam("start") String start, // yyyy-mm-dd hh:mm
+            @FormParam("end") String end      // yyyy-mm-dd hh:mm
+    ) throws Exception {
+        UserTable userTable = UserTable.selectByToken(token);
+        if(userTable == null)
+            throw new Exception("用户未找到");
+
+        Date startDate = StringUtil.getDateFromString(start);
+        Date endDate = StringUtil.getDateFromString(end);
+
+        List<ChargeModel.ChargeEntry> entryList = new ArrayList<>();
+
+        List<ChargeHistoryTable> list = ChargeHistoryTable.selectHistoryByDate(userTable.getStaffId(), startDate, endDate);
+        for(ChargeHistoryTable history : list)
+            entryList.add(ChargeModel.ChargeEntry.of(history));
+
+        ChargeModel chargeModel = new ChargeModel();
+        chargeModel.setChargeHistory(entryList);
+
+        return chargeModel;
     }
 
     // =========== 购买 =============
@@ -182,12 +206,15 @@ public class StaffResource {
         goodsTable.update();
 
         HistoryTable historyTable = new HistoryTable();
-        historyTable.setUserToken(token);
+        historyTable.setStaffId(userTable.getStaffId());
         historyTable.setGoodsBarCode(barCode);
         historyTable.setCount(count);
         historyTable.setSpend(count * goodsTable.getSalePrice());
         historyTable.setTime(Calendar.getInstance().getTime());
         historyTable.insert();
+
+        userTable.setMoney(userTable.getMoney() - count * goodsTable.getSalePrice());
+        userTable.save();
 
         return new StatusModel();
     }

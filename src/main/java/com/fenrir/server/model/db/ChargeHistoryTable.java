@@ -8,35 +8,42 @@ import java.util.Date;
 import java.util.List;
 
 /**
- * Created by yume on 16-4-12.
+ * Created by yume on 16-4-13.
  */
 @Data
-public class HistoryTable implements Table {
+public class ChargeHistoryTable implements Table {
     private long id;
-    private Date time;
-    private String goodsBarCode;
-    private float count;
     private int staffId;
-    private float spend;
+    private float charge;
+    private Date time;
+
+    public static ChargeHistoryTable of(int staffId, float charge, Date time) {
+        ChargeHistoryTable chargeHistoryTable = new ChargeHistoryTable();
+        chargeHistoryTable.staffId = staffId;
+        chargeHistoryTable.charge = charge;
+        chargeHistoryTable.time = time;
+
+        return chargeHistoryTable;
+    }
 
     @Override
     public long id() {
         return id;
     }
 
-    public static List<HistoryTable> selectHistoryByStartDate(Date start) {
+    public static List<ChargeHistoryTable> selectHistoryByStartDate(Date start) {
         return selectHistoryByDate(null, start, null);
     }
 
-    public static List<HistoryTable> selectHistoryByEndDate(Date end) {
+    public static List<ChargeHistoryTable> selectHistoryByEndDate(Date end) {
         return selectHistoryByDate(null, null, end);
     }
 
-    public static List<HistoryTable> selectHistoryByDate(Date start, Date end) {
+    public static List<ChargeHistoryTable> selectHistoryByDate(Date start, Date end) {
         return selectHistoryByDate(null, start, end);
     }
 
-    public static List<HistoryTable> selectHistoryByDate(Integer staffId, Date start, Date end) {
+    public static List<ChargeHistoryTable> selectHistoryByDate(Integer staffId, Date start, Date end) {
         List<WhereEntry> whereEntryList = new ArrayList<>();
         if(staffId != null)
             whereEntryList.add(
@@ -54,7 +61,7 @@ public class HistoryTable implements Table {
                     StringUtil.getDateStringForMySql(end));
 
         return Table.select(
-                HistoryTable.class,
+                ChargeHistoryTable.class,
                 whereEntryList.toArray(new WhereEntry[whereEntryList.size()]));
     }
 }

@@ -12,6 +12,8 @@ public class UserInfo {
     private String username;
     private int staffId;
     private String token;
+    private float point;
+    private float money;
 
     public static UserInfo of(UserTable userTable) {
         UserInfo userInfo = new UserInfo();
@@ -19,6 +21,8 @@ public class UserInfo {
         userInfo.username = userTable.getUsername();
         userInfo.staffId = userTable.getStaffId();
         userInfo.token = userTable.getToken();
+        userInfo.point= userTable.getPoint();
+        userInfo.money = userTable.getMoney();
 
         return userInfo;
     }

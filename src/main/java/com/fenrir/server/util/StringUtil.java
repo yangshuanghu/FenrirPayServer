@@ -9,22 +9,48 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.DateFormat;
 import java.text.Normalizer;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Random;
 
 /**
  * Created by yume on 16/1/13.
  */
 public class StringUtil {
+    private static final char[] charList = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+    'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
+    'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'};
 
     public static boolean isEmpty(String str) {
         return str == null || "".equals(str);
     }
 
     private static final DateFormat DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+    private static final DateFormat API_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd hh:mm");
 
     public static String getDateStringForMySql(Date date) {
         return DATE_FORMAT.format(date);
+    }
+
+    //yyyy/MM/dd hh:mm
+    public static Date getDateFromString(String dateString) {
+        Date date = null;
+        try {
+            date = API_DATE_FORMAT.parse(dateString);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+
+        return date;
+    }
+
+    public static String generateRandomString(int length){
+        Random random = new Random(System.currentTimeMillis());
+        StringBuilder stringBuilder = new StringBuilder();
+        for(int i = 0; i < length; i++)
+            stringBuilder.append(charList[random.nextInt(charList.length)]);
+        return stringBuilder.toString();
     }
 
     /**
