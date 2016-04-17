@@ -11,6 +11,7 @@ import java.util.List;
 @Data
 public class HistoryModel {
     private List<HistoryEntry> history;
+    private long count;
 
     @Data
     public static class HistoryEntry {
@@ -18,6 +19,7 @@ public class HistoryModel {
         private String name;
         private float payCount;
         private float spend;
+        private String historyToken;
         private List<GoodsModel> payGoods;
     }
 }

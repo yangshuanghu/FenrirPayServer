@@ -17,11 +17,13 @@ public class ChargeModel {
     public static class ChargeEntry {
         private float charge;
         private Date time;
+        private String chargeToken;
 
         public static ChargeEntry of(ChargeHistoryTable chargeHistoryTable) {
             ChargeEntry chargeEntry = new ChargeEntry();
             chargeEntry.charge = chargeHistoryTable.getCharge();
             chargeEntry.time = chargeHistoryTable.getTime();
+            chargeEntry.chargeToken = chargeHistoryTable.getToken();
 
             return chargeEntry;
         }

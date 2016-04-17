@@ -11,13 +11,17 @@ import java.text.DateFormat;
 import java.text.Normalizer;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 import java.util.Random;
 
 /**
  * Created by yume on 16/1/13.
  */
 public class StringUtil {
+    private static final Random random = new Random(System.currentTimeMillis());
+
     private static final char[] charList = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
     'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
     'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'};
@@ -35,10 +39,13 @@ public class StringUtil {
 
     //yyyy/MM/dd hh:mm
     public static Date getDateFromString(String dateString) {
+        if(StringUtil.isEmpty(dateString))
+            return null;
+
         Date date = null;
         try {
             date = API_DATE_FORMAT.parse(dateString);
-        } catch (ParseException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
@@ -46,7 +53,6 @@ public class StringUtil {
     }
 
     public static String generateRandomString(int length){
-        Random random = new Random(System.currentTimeMillis());
         StringBuilder stringBuilder = new StringBuilder();
         for(int i = 0; i < length; i++)
             stringBuilder.append(charList[random.nextInt(charList.length)]);
@@ -90,6 +96,13 @@ public class StringUtil {
 
     private static final char HEX_DIGITS[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
             'a', 'b', 'c', 'd', 'e', 'f'};
+
+    public static String getTokenString(Object... items){
+        List<Object> list = Arrays.asList(items, StringUtil.generateRandomString(16));
+        return StringUtil.getMD5String(
+                Arrays.toString(
+                        list.toArray(new Object[list.size()])));
+    }
 
     /**
      * Get string's md5 string.

@@ -47,9 +47,9 @@ public class AdminResource {
             @FormParam("barCode") String barCode,
             @FormParam("salePrice") Float salePrice,
             @FormParam("costPrice") Float costPrice,
-            @FormParam("count") Float count,
+            @FormParam("count") Integer count,
             @FormParam("unit") String unit,
-            @FormParam("packageNum") Float packageNum,
+            @FormParam("packageNum") Integer packageNum,
             @FormParam("note") String note,
             @FormParam("className") String className
     ) throws Exception {
@@ -80,9 +80,9 @@ public class AdminResource {
             @FormParam("barCode") String barCode,
             @FormParam("salePrice") Float salePrice,
             @FormParam("costPrice") Float costPrice,
-            @FormParam("count") Float count,
+            @FormParam("count") Integer count,
             @FormParam("unit") String unit,
-            @FormParam("packageNum") Float packageNum,
+            @FormParam("packageNum") Integer packageNum,
             @FormParam("note") String note,
             @FormParam("className") String className
     ) throws Exception {

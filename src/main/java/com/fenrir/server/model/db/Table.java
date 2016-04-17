@@ -62,6 +62,13 @@ public interface Table {
 
     static <T extends Table> List<T> select(Class<T> tableClazz,
                                             WhereEntry... paramList) {
+        return select(tableClazz, 0, 0, paramList);
+    }
+
+    static <T extends Table> List<T> select(Class<T> tableClazz,
+                                            long offset,
+                                            long limit,
+                                            WhereEntry... paramList) {
         String where = "";
         if(paramList != null && paramList.length != 0) {
             StringBuilder paramString = new StringBuilder("WHERE ");
@@ -73,7 +80,10 @@ public interface Table {
 
         String sql = String.format(SQL_SELECT, SQLManagerBuilder.getDB_NAME(), tableName(tableClazz), where);
 
-        return sqlManager.execute(sql, tableClazz, null);
+        if(offset == 0 && limit == 0)
+            return sqlManager.execute(sql, tableClazz, null);
+        else
+            return sqlManager.execute(sql, tableClazz, null, offset, limit);
     }
 
     static <T extends Table> T selectSingle(Class<T> tableClazz,
@@ -85,12 +95,23 @@ public interface Table {
 
     static <T extends Table> List<T> select(Class<T> tableClazz,
                                             Consumer<Map<String, Object>> paramFun) {
+        return select(tableClazz, paramFun, 0, 0);
+    }
+
+    static <T extends Table> List<T> select(Class<T> tableClazz,
+                                            Consumer<Map<String, Object>> paramFun,
+                                            long offset,
+                                            long limit) {
         Map<String, Object> map = new HashMap<>();
         paramFun.accept(map);
-        return select(tableClazz, map);
+        return select(tableClazz, map, offset, limit);
     }
 
     static <T extends Table> List<T> select(Class<T> tableClazz, Map<String, Object> params) {
+        return select(tableClazz, params);
+    }
+
+    static <T extends Table> List<T> select(Class<T> tableClazz, Map<String, Object> params, long offset, long limit) {
         String where = "";
         if(params != null && params.size() != 0) {
             StringBuilder paramString = new StringBuilder("WHERE ");
@@ -105,7 +126,10 @@ public interface Table {
 
         String sql = String.format(SQL_SELECT, SQLManagerBuilder.getDB_NAME(), tableName(tableClazz), where);
 
-        return sqlManager.execute(sql, tableClazz, null);
+        if(offset == 0 && limit == 0)
+            return sqlManager.execute(sql, tableClazz, null);
+        else
+            return sqlManager.execute(sql, tableClazz, null, offset, limit);
     }
 
     static String tableName(Class<? extends Table> clazz) {
@@ -114,6 +138,10 @@ public interface Table {
 
     static long count(Class<? extends Table> tableClazz) {
         return sqlManager.allCount(tableClazz);
+    }
+
+    static long count(Class<? extends Table> tableClazz, Map<String, Object> params) {
+        return sqlManager.longValue("select count(1) from goods_db.history_table", null);
     }
 
     static <T> T selectById(Class<T> tableClazz, long id) {

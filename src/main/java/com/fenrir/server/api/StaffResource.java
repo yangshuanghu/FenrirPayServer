@@ -12,10 +12,7 @@ import org.beetl.sql.core.SQLManager;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -25,6 +22,26 @@ import java.util.stream.Collectors;
 @Path("/staff")
 //@Api(value = "/staff", description = "This is test api")
 public class StaffResource {
+
+//    @GET
+//    @Path("api_testInertGoods")
+//    @Produces(MediaType.APPLICATION_JSON)
+    public StatusModel test() throws Exception {
+        GoodsTable goodsTable = new GoodsTable();
+        goodsTable.setName("笔记本（广博）");
+        goodsTable.setBarCode("6922711027944");
+        goodsTable.setSalePrice(3.0f);
+        goodsTable.setCostPrice(7f);
+        goodsTable.setCount(8);
+        goodsTable.setUnit("本");
+        goodsTable.setPackageNum(1);
+        goodsTable.setNote("淡黄色的子页，很适合用来做笔记。");
+        goodsTable.setClassName("办公用品");
+        goodsTable.setCreateDate(Calendar.getInstance().getTime());
+        goodsTable.insert();
+
+        return new StatusModel();
+    }
 
     // =========== 用户管理 =============
     @POST
@@ -116,7 +133,9 @@ public class StaffResource {
     public HistoryModel getPayHistory(
             @FormParam("token") String token,
             @FormParam("start") String start, // yyyy-mm-dd hh:mm
-            @FormParam("end") String end      // yyyy-mm-dd hh:mm
+            @FormParam("end") String end,      // yyyy-mm-dd hh:mm
+            @FormParam("offset") long offset,
+            @FormParam("limit") long limit
     ) throws Exception {
         UserTable userTable = UserTable.selectByToken(token);
         if(userTable == null)
@@ -127,7 +146,7 @@ public class StaffResource {
 
         List<HistoryModel.HistoryEntry> entryList = new ArrayList<>();
 
-        List<HistoryTable> list = HistoryTable.selectHistoryByDate(userTable.getStaffId(), startDate, endDate);
+        List<HistoryTable> list = HistoryTable.selectHistoryByDate(userTable.getStaffId(), startDate, endDate, offset, limit);
         for(HistoryTable history : list) {
             GoodsTable goodsTable = GoodsTable.selectByBarCode(history.getGoodsBarCode());
             if(goodsTable == null) {
@@ -138,6 +157,7 @@ public class StaffResource {
             entry.setSpend(history.getSpend());
             entry.setName(goodsTable.getName());
             entry.setPayCount(history.getSpend());
+            entry.setHistoryToken(history.getToken());
 
             List<GoodsModel> goodsList = new ArrayList<>();
             goodsList.add(GoodsModel.of(goodsTable));
@@ -148,8 +168,27 @@ public class StaffResource {
 
         HistoryModel historyModel = new HistoryModel();
         historyModel.setHistory(entryList);
+        historyModel.setCount(Table.count(HistoryTable.class, new HashMap()));
 
         return historyModel;
+    }
+
+    @POST
+    @Path("api_deletePayHistory")
+    @Produces(MediaType.APPLICATION_JSON)
+    public StatusModel deletePayHistory(
+            @FormParam("token") String token,
+            @FormParam("historyToken") String historyToken
+    ) throws Exception {
+        UserTable userTable = UserTable.selectByToken(token);
+        if (userTable == null)
+            throw new Exception("用户未找到");
+
+        HistoryTable table = HistoryTable.selectHistoryByToken(historyToken);
+        if(table == null || userTable.getStaffId() != table.getStaffId())
+            throw new Exception("购买记录未找到");
+
+        return new StatusModel();
     }
 
     // =========== 充值历史查询 =============
@@ -160,7 +199,9 @@ public class StaffResource {
     public ChargeModel getChargeHistory(
             @FormParam("token") String token,
             @FormParam("start") String start, // yyyy-mm-dd hh:mm
-            @FormParam("end") String end      // yyyy-mm-dd hh:mm
+            @FormParam("end") String end,      // yyyy-mm-dd hh:mm
+            @FormParam("offset") Long offset,
+            @FormParam("limit") Long limit
     ) throws Exception {
         UserTable userTable = UserTable.selectByToken(token);
         if(userTable == null)
@@ -171,7 +212,7 @@ public class StaffResource {
 
         List<ChargeModel.ChargeEntry> entryList = new ArrayList<>();
 
-        List<ChargeHistoryTable> list = ChargeHistoryTable.selectHistoryByDate(userTable.getStaffId(), startDate, endDate);
+        List<ChargeHistoryTable> list = ChargeHistoryTable.selectHistoryByDate(userTable.getStaffId(), startDate, endDate, offset, limit);
         for(ChargeHistoryTable history : list)
             entryList.add(ChargeModel.ChargeEntry.of(history));
 
@@ -179,6 +220,24 @@ public class StaffResource {
         chargeModel.setChargeHistory(entryList);
 
         return chargeModel;
+    }
+
+    @POST
+    @Path("api_deleteChargeHistory")
+    @Produces(MediaType.APPLICATION_JSON)
+    public StatusModel deleteChargeHistory(
+            @FormParam("token") String token,
+            @FormParam("chargeToken") String chargeToken
+    ) throws Exception {
+        UserTable userTable = UserTable.selectByToken(token);
+        if (userTable == null)
+            throw new Exception("用户未找到");
+
+        ChargeHistoryTable table = ChargeHistoryTable.selectHistoryByToken(chargeToken);
+        if(table == null || userTable.getStaffId() != table.getStaffId())
+            throw new Exception("充值记录未找到");
+
+        return new StatusModel();
     }
 
     // =========== 购买 =============
@@ -189,7 +248,7 @@ public class StaffResource {
     public StatusModel payGoods(
             @FormParam("token") String token,
             @FormParam("barCode") String barCode,
-            @FormParam("count") float count
+            @FormParam("count") int count
     ) throws Exception {
         UserTable userTable = UserTable.selectByToken(token);
         if(userTable == null)
@@ -205,12 +264,11 @@ public class StaffResource {
         goodsTable.setCount(goodsTable.getCount() - count);
         goodsTable.update();
 
-        HistoryTable historyTable = new HistoryTable();
-        historyTable.setStaffId(userTable.getStaffId());
-        historyTable.setGoodsBarCode(barCode);
-        historyTable.setCount(count);
-        historyTable.setSpend(count * goodsTable.getSalePrice());
-        historyTable.setTime(Calendar.getInstance().getTime());
+        HistoryTable historyTable = HistoryTable.of(
+                barCode,
+                count,
+                userTable.getStaffId(),
+                count * goodsTable.getSalePrice());
         historyTable.insert();
 
         userTable.setMoney(userTable.getMoney() - count * goodsTable.getSalePrice());

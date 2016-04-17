@@ -41,7 +41,7 @@ public class UserTable implements Table {
     }
 
     public void resetToken() {
-        token = StringUtil.getMD5String(name + ":" + password + " : " + staffId + StringUtil.generateRandomString(16));
+        token = StringUtil.getTokenString(name, password, staffId);
     }
 
     public boolean isAdmin() {
