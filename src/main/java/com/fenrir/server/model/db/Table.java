@@ -42,7 +42,7 @@ public interface Table {
 
     default boolean exists() {
         return id() > 0
-                && sqlManager.templateCount(this.getClass()) > 0;
+                && selectSingle(this.getClass(), eq("id", String.valueOf(id()))) != null;
     }
 
     default String tableName() {
@@ -141,7 +141,7 @@ public interface Table {
     }
 
     static long count(Class<? extends Table> tableClazz, Map<String, Object> params) {
-        return sqlManager.longValue("select count(1) from goods_db.history_table", null);
+        return sqlManager.longValue("select amount(1) from goods_db.history_table", null);
     }
 
     static <T> T selectById(Class<T> tableClazz, long id) {

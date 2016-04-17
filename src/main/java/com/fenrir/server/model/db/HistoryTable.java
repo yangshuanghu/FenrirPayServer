@@ -2,7 +2,6 @@ package com.fenrir.server.model.db;
 
 import com.fenrir.server.util.StringUtil;
 import lombok.Data;
-import org.apache.tomcat.util.http.fileupload.util.Streams;
 
 import java.util.*;
 
@@ -17,31 +16,31 @@ public class HistoryTable implements Table {
     public static final int SHOW_FLAG_NONE = 1;
 
     private long id;
-    private Date time;
+    private Date payTime;
 
     private String goodsBarCode;
-    private float count;
+    private int payCount;
     private int staffId;
     private float spend;
 
     private String token;
     private int showFlag;
 
-    public static HistoryTable of(String goodsBarCode, float count, int staffId, float spend) {
+    public static HistoryTable of(String goodsBarCode, int count, int staffId, float spend) {
         HistoryTable table = new HistoryTable();
         table.goodsBarCode = goodsBarCode;
-        table.count = count;
+        table.payCount = count;
         table.staffId = staffId;
         table.spend = spend;
-        table.time = Calendar.getInstance().getTime();
+        table.payTime = Calendar.getInstance().getTime();
         table.showFlag = SHOW_FLAG_SHOW;
 
         table.token = getTokenString(
                                 table.goodsBarCode,
-                                table.count,
+                                table.payCount,
                                 table.staffId,
                                 table.spend,
-                                table.time);
+                                table.payTime);
 
         return table;
     }
@@ -78,11 +77,11 @@ public class HistoryTable implements Table {
         if(start != null)
             whereEntryList.add(
                     Table.greaterThanOrEq(
-                            "time",
+                            "chargeDate",
                             StringUtil.getDateStringForMySql(start)));
         if(end != null)
             Table.lessThanOrEq(
-                    "time",
+                    "chargeDate",
                     StringUtil.getDateStringForMySql(end));
 
         return Table.select(

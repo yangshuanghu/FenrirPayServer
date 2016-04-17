@@ -6,6 +6,8 @@ import org.beetl.sql.core.db.DBStyle;
 import org.beetl.sql.core.db.MySqlStyle;
 import org.beetl.sql.ext.DebugInterceptor;
 
+import java.util.Properties;
+
 /**
  * Created by yume on 16-4-12.
  */
@@ -28,7 +30,7 @@ public class SQLManagerBuilder {
     public static SQLManager getSqlManager() {
         ConnectionSource source = ConnectionSourceHelper.getSimple(
                 "com.mysql.jdbc.Driver",
-                "jdbc:mysql://localhost:3306/" + DB_NAME,
+                "jdbc:mysql://localhost:3306/",
                 "",
                 "root",
                 "root"
@@ -38,13 +40,19 @@ public class SQLManagerBuilder {
 
         SQLLoader loader = new ClasspathLoader("/sql");
 
+        Properties properties = new Properties();
+        properties.setProperty("characterEncoding", "utf8");
+        properties.setProperty("useUnicode", "true");
+
         UnderlinedNameConversion nc = new UnderlinedNameConversion();
         SQLManager sqlManager = new SQLManager(
                 mysql,
                 loader,
                 source,
                 nc,
-                new Interceptor[]{new DebugInterceptor()});
+                new Interceptor[]{new DebugInterceptor()},
+                DB_NAME,
+                properties);
 
         return sqlManager;
     }

@@ -20,7 +20,7 @@ public class ChargeHistoryTable implements Table {
     private long id;
     private int staffId;
     private float charge;
-    private Date time;
+    private Date chargeDate;
     private String token;
     private int showFlag;
 
@@ -28,13 +28,13 @@ public class ChargeHistoryTable implements Table {
         ChargeHistoryTable chargeHistoryTable = new ChargeHistoryTable();
         chargeHistoryTable.staffId = staffId;
         chargeHistoryTable.charge = charge;
-        chargeHistoryTable.time = time;
+        chargeHistoryTable.chargeDate = time;
         chargeHistoryTable.showFlag = SHOW_FLAG_SHOW;
 
         chargeHistoryTable.token = getTokenString(
                 chargeHistoryTable.staffId,
                 chargeHistoryTable.charge,
-                chargeHistoryTable.time);
+                chargeHistoryTable.chargeDate);
 
         return chargeHistoryTable;
     }
@@ -71,11 +71,11 @@ public class ChargeHistoryTable implements Table {
         if(start != null)
             whereEntryList.add(
                     Table.greaterThanOrEq(
-                            "time",
+                            "chargeDate",
                             StringUtil.getDateStringForMySql(start)));
         if(end != null)
             Table.lessThanOrEq(
-                    "time",
+                    "chargeDate",
                     StringUtil.getDateStringForMySql(end));
 
         return Table.select(

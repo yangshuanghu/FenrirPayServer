@@ -1,7 +1,7 @@
 package com.fenrir.server.api;
 
 import com.aol.micro.server.auto.discovery.Rest;
-import com.fenrir.server.model.api.RegisterStaffRequest;
+import com.fenrir.server.model.api.GoodsModel;
 import com.fenrir.server.model.api.StatusModel;
 import com.fenrir.server.model.api.UserInfo;
 import com.fenrir.server.model.db.*;
@@ -9,7 +9,6 @@ import com.fenrir.server.util.StringUtil;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -47,7 +46,7 @@ public class AdminResource {
             @FormParam("barCode") String barCode,
             @FormParam("salePrice") Float salePrice,
             @FormParam("costPrice") Float costPrice,
-            @FormParam("count") Integer count,
+            @FormParam("amount") Integer count,
             @FormParam("unit") String unit,
             @FormParam("packageNum") Integer packageNum,
             @FormParam("note") String note,
@@ -60,7 +59,7 @@ public class AdminResource {
         goodsTable.setBarCode(barCode);
         goodsTable.setSalePrice(salePrice);
         goodsTable.setCostPrice(costPrice);
-        goodsTable.setCount(count);
+        goodsTable.setAmount(count);
         goodsTable.setUnit(unit);
         goodsTable.setPackageNum(packageNum);
         goodsTable.setNote(note);
@@ -80,7 +79,7 @@ public class AdminResource {
             @FormParam("barCode") String barCode,
             @FormParam("salePrice") Float salePrice,
             @FormParam("costPrice") Float costPrice,
-            @FormParam("count") Integer count,
+            @FormParam("amount") Integer count,
             @FormParam("unit") String unit,
             @FormParam("packageNum") Integer packageNum,
             @FormParam("note") String note,
@@ -91,6 +90,8 @@ public class AdminResource {
         GoodsTable goodsTable = GoodsTable.selectByBarCode(barCode);
         if(goodsTable == null) {
             goodsTable = new GoodsTable();
+            goodsTable.setCreateDate(Calendar.getInstance().getTime());
+        } else {
             goodsTable.setUpdateDate(Calendar.getInstance().getTime());
         }
 
@@ -98,7 +99,7 @@ public class AdminResource {
         goodsTable.setBarCode(barCode);
         goodsTable.setSalePrice(salePrice);
         goodsTable.setCostPrice(costPrice);
-        goodsTable.setCount(count);
+        goodsTable.setAmount(count);
         goodsTable.setUnit(unit);
         goodsTable.setPackageNum(packageNum);
         goodsTable.setNote(note);
@@ -107,6 +108,42 @@ public class AdminResource {
         goodsTable.save();
 
         return new StatusModel();
+    }
+
+    @POST
+    @Path("api_findGoodsItem")
+    @Produces(MediaType.APPLICATION_JSON)
+    public GoodsModel findGoodsItem(
+            @FormParam("barCode") String barCode
+    ) throws Exception {
+        GoodsTable goodsTable = GoodsTable.selectByBarCode(barCode);
+        if(goodsTable == null)
+            throw new Exception("商品未找到");
+
+        return GoodsModel.of(goodsTable);
+    }
+
+    @POST
+    @Path("api_getAllGoods")
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<GoodsModel> getAllGoods() {
+        return GoodsTable.all()
+                .stream()
+                .map(GoodsModel::of)
+                .collect(Collectors.toList());
+    }
+
+    @POST
+    @Path("api_findByClass")
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<GoodsModel> findByClass(
+            @FormParam("className") String className
+    ) {
+        List<GoodsTable> list = GoodsTable.selectByClass(className);
+
+        return list.stream()
+                .map(GoodsModel::of)
+                .collect(Collectors.toList());
     }
 
     // ============== 用户管理 ===============

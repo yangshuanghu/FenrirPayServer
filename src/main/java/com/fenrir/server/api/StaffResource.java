@@ -1,17 +1,14 @@
 package com.fenrir.server.api;
 
-import com.aol.micro.server.MicroserverApp;
 import com.aol.micro.server.auto.discovery.Rest;
-import com.fenrir.server.data.SQLManagerBuilder;
 import com.fenrir.server.model.api.*;
 import com.fenrir.server.model.db.*;
 import com.fenrir.server.util.StringUtil;
-import com.wordnik.swagger.annotations.Api;
-import com.wordnik.swagger.annotations.ApiOperation;
-import org.beetl.sql.core.SQLManager;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import java.nio.charset.Charset;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -27,20 +24,38 @@ public class StaffResource {
 //    @Path("api_testInertGoods")
 //    @Produces(MediaType.APPLICATION_JSON)
     public StatusModel test() throws Exception {
-        GoodsTable goodsTable = new GoodsTable();
-        goodsTable.setName("笔记本（广博）");
-        goodsTable.setBarCode("6922711027944");
-        goodsTable.setSalePrice(3.0f);
-        goodsTable.setCostPrice(7f);
-        goodsTable.setCount(8);
-        goodsTable.setUnit("本");
-        goodsTable.setPackageNum(1);
-        goodsTable.setNote("淡黄色的子页，很适合用来做笔记。");
-        goodsTable.setClassName("办公用品");
-        goodsTable.setCreateDate(Calendar.getInstance().getTime());
-        goodsTable.insert();
+//        GoodsTable goodsTable = new GoodsTable();
+//        System.out.println(new String("笔记本（广博）".getBytes("utf8"), Charset.forName("utf8")));
+//        goodsTable.setName("笔记本（广博）");
+//        goodsTable.setBarCode("6922711027944");
+//        goodsTable.setSalePrice(3.0f);
+//        goodsTable.setCostPrice(7f);
+//        goodsTable.setAmount(8);
+//        goodsTable.setUnit("本");
+//        goodsTable.setPackageNum(1);
+//        goodsTable.setNote("淡黄色的子页，很适合用来做笔记。");
+//        goodsTable.setClassName("办公用品");
+//        goodsTable.setCreateDate(Calendar.getInstance().getTime());
+//        goodsTable.insert();
+//
+//        return new StatusModel();
+
+        UserTable userTable = new UserTable();
+        userTable.setToken("123456");
+        userTable.setUsername("测试管理员");
+        userTable.setName("AdminTest");
+        userTable.setPermission(UserTable.PERMISSION_ADMIN);
+        userTable.setPassword("123456");
+        userTable.setStaffId(999);
+        userTable.setMoney(0);
+        userTable.setPoint(0);
+
+        userTable.save();
 
         return new StatusModel();
+
+//        throw new ServerErrorException("商品未找到", Response.Status.NO_CONTENT);
+//        return GoodsTable.selectByBarCode("6922711027944");
     }
 
     // =========== 用户管理 =============
@@ -153,7 +168,7 @@ public class StaffResource {
                 goodsTable = new GoodsTable();
             }
             HistoryModel.HistoryEntry entry = new HistoryModel.HistoryEntry();
-            entry.setTime(history.getTime());
+            entry.setTime(history.getPayTime());
             entry.setSpend(history.getSpend());
             entry.setName(goodsTable.getName());
             entry.setPayCount(history.getSpend());
@@ -248,7 +263,7 @@ public class StaffResource {
     public StatusModel payGoods(
             @FormParam("token") String token,
             @FormParam("barCode") String barCode,
-            @FormParam("count") int count
+            @FormParam("amount") int count
     ) throws Exception {
         UserTable userTable = UserTable.selectByToken(token);
         if(userTable == null)
@@ -258,10 +273,10 @@ public class StaffResource {
         if(goodsTable == null)
             throw new Exception("barCode 有误。");
 
-        if(goodsTable.getCount() < count)
+        if(goodsTable.getAmount() < count)
             throw new Exception("商品数量不够。");
 
-        goodsTable.setCount(goodsTable.getCount() - count);
+        goodsTable.setAmount(goodsTable.getAmount() - count);
         goodsTable.update();
 
         HistoryTable historyTable = HistoryTable.of(

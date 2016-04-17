@@ -25,7 +25,7 @@ public class GoodsModel {
         goodsModel.barCode = goodsTable.getBarCode();
         goodsModel.salePrice = goodsTable.getSalePrice();
         goodsModel.costPrice = goodsTable.getCostPrice();
-        goodsModel.count = goodsTable.getCount();
+        goodsModel.count = goodsTable.getAmount();
         goodsModel.unit = goodsTable.getUnit();
         goodsModel.packageNum = goodsTable.getPackageNum();
         goodsModel.note = goodsTable.getNote();

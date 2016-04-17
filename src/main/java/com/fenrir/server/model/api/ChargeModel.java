@@ -22,7 +22,7 @@ public class ChargeModel {
         public static ChargeEntry of(ChargeHistoryTable chargeHistoryTable) {
             ChargeEntry chargeEntry = new ChargeEntry();
             chargeEntry.charge = chargeHistoryTable.getCharge();
-            chargeEntry.time = chargeHistoryTable.getTime();
+            chargeEntry.time = chargeHistoryTable.getChargeDate();
             chargeEntry.chargeToken = chargeHistoryTable.getToken();
 
             return chargeEntry;

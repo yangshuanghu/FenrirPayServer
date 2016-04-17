@@ -18,7 +18,7 @@ public class GoodsTable implements Table {
     private String barCode;
     private Float salePrice;
     private Float costPrice;
-    private Integer count;
+    private Integer amount;
     private String unit;
     private Integer packageNum;
     private String note;

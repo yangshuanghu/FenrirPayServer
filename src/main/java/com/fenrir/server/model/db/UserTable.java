@@ -13,8 +13,8 @@ import java.util.Map;
 public class UserTable implements Table {
     static final String SQL_SELECT_BY_ID = "SELECT * FROM %s.%s WHERE id = %d;";
 
-    private static final int PERMISSION_STAFF = 0x11;
-    private static final int PERMISSION_ADMIN = 0x22;
+    public static final int PERMISSION_STAFF = 1;
+    public static final int PERMISSION_ADMIN = 2;
 
     private long id;
     private String name;
