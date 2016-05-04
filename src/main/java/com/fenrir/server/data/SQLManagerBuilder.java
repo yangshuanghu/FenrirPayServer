@@ -30,10 +30,10 @@ public class SQLManagerBuilder {
     public static SQLManager getSqlManager() {
         ConnectionSource source = ConnectionSourceHelper.getSimple(
                 "com.mysql.jdbc.Driver",
-                "jdbc:mysql://localhost:3306/",
+                "jdbc:mysql://192.168.0.15:3306/",
                 "",
-                "root",
-                "root"
+                "admin",
+                "admin"
         );
 
         DBStyle mysql = new MySqlStyle();
